@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Impostor - Party Game</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    
+    <link rel="stylesheet" href="css/estilos.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <div id="contenedor-toast"></div>
+
+    <div id="pantalla-menu" class="pantalla activa">
+        <h1><i data-lucide="incognito" style="width: 55px; height: 55px; stroke: var(--color-acento);"></i><br>El Impostor</h1>
+        <p style="color: var(--texto-secundario);">Juego de fiesta para 3+ jugadores</p>
+        
+        <button onclick="irAConfiguracion()" class="btn-principal">
+            <i data-lucide="play"></i> Nuevo Juego
+        </button>
+
+        <button onclick="irACategorias('pantalla-menu')" class="btn-secundario btn-borde" style="margin-top: 15px; width: 100%;">
+            <i data-lucide="layers"></i> Categorías
+        </button>
+
+        <button onclick="cambiarPantalla('pantalla-menu', 'pantalla-instrucciones')" class="btn-secundario" style="width: 100%;">
+            <i data-lucide="book-open"></i> Instrucciones
+        </button>
+    </div>
+
+    <div id="pantalla-instrucciones" class="pantalla oculta">
+        <h2>Instrucciones</h2>
+        <div style="text-align: left; max-height: 60vh; overflow-y: auto; margin-bottom: 20px; color: var(--texto-secundario); font-size: 0.95rem; padding-right: 10px;">
+            <p><strong>1. Preparación:</strong> Reúne al menos a 3 jugadores. Añade sus nombres en los ajustes y selecciona las categorías de palabras.</p>
+            <p><strong>2. Sorteo:</strong> El juego elegirá una palabra secreta al azar. A la mayoría se les asignará el rol de "Local" y conocerán la palabra. A otros se les asignará el rol de "Impostor" y no sabrán la palabra.</p>
+            <p><strong>3. Roles:</strong> Pasa el dispositivo a cada jugador para que vea su rol en secreto.</p>
+            <p><strong>4. Debate:</strong> Una vez que todos saben su rol, comienza el debate. Los Locales deben hacer preguntas sutiles para descubrir al Impostor sin revelar la palabra. El Impostor debe intentar adivinar la palabra o pasar desapercibido.</p>
+            <p><strong>5. Votación:</strong> Al terminar el tiempo, todos votan por quién creen que es el Impostor.</p>
+        </div>
+        <button onclick="cambiarPantalla('pantalla-instrucciones', 'pantalla-menu')" class="btn-volver">
+            <i data-lucide="arrow-left"></i> Volver al Menú
+        </button>
+    </div>
+
+    <div id="pantalla-categorias" class="pantalla oculta">
+        <h2>Elige las Categorías</h2>
+        <p style="color: var(--texto-secundario);">Se guardarán para tus próximos juegos</p>
+        
+        <div id="lista-categorias" class="grid-categorias"></div>
+
+        <button onclick="volverDeCategorias()" class="btn-principal">
+            Guardar y Volver <i data-lucide="save"></i>
+        </button>
+    </div>
+
+    <div id="pantalla-jugadores" class="pantalla oculta">
+        <h2>Lista de Jugadores</h2>
+        <p style="color: var(--texto-secundario);">Mínimo 3 jugadores</p>
+        
+        <div style="display: flex; gap: 10px; width: 100%; margin-bottom: 20px;">
+            <input type="text" id="input-nuevo-jugador" class="input-texto" placeholder="Nombre del jugador...">
+            <button onclick="agregarJugador()" class="btn-principal" style="margin-top: 0; width: auto; padding: 12px 20px;">
+                <i data-lucide="plus"></i>
+            </button>
+        </div>
+
+        <div id="lista-jugadores" style="width: 100%; display: flex; flex-direction: column; gap: 10px; max-height: 50vh; overflow-y: auto; margin-bottom: 20px;"></div>
+
+        <button onclick="volverDeJugadores()" class="btn-principal">
+            Confirmar <i data-lucide="check"></i>
+        </button>
+    </div>
+
+    <div id="pantalla-configuracion" class="pantalla oculta">
+        <h2>Ajustes del Juego</h2>
+        
+        <div class="caja-ajustes" style="margin-bottom: 15px; cursor: pointer; border-color: var(--color-primario);" onclick="irACategorias('pantalla-configuracion')">
+            <label style="margin-top: 0; color: var(--color-primario);"><i data-lucide="layers"></i> Categorías</label>
+            <p id="categoria-seleccionada-texto" style="color: var(--color-acento); margin: 5px 0 0 0; font-size: 0.95rem; font-weight: bold;"></p>
+        </div>
+
+        <div class="caja-ajustes" style="margin-bottom: 15px; cursor: pointer; border-color: var(--color-primario);" onclick="cambiarPantalla('pantalla-configuracion', 'pantalla-jugadores')">
+            <label style="margin-top: 0; color: var(--color-primario);"><i data-lucide="users"></i> Jugadores</label>
+            <p id="jugadores-seleccionados-texto" style="color: var(--color-acento); margin: 5px 0 0 0; font-size: 0.95rem; font-weight: bold;"></p>
+        </div>
+        
+        <div class="caja-ajustes">
+            <label><i data-lucide="user-x"></i> Impostores: <span id="valor-impostores">1</span></label>
+            <input type="range" id="rango-impostores" min="1" max="1" value="1" oninput="actualizarRangoImpostores()">
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--color-borde);">
+                <label style="margin-top: 0;"><i data-lucide="lightbulb"></i> Pista al Impostor</label>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-pista"> <span class="slider-switch round"></span>
+                </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--color-borde);">
+                <label style="margin-top: 0;"><i data-lucide="timer"></i> Límite de tiempo</label>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-tiempo" onchange="toggleTiempo()">
+                    <span class="slider-switch round"></span>
+                </label>
+            </div>
+            
+            <div id="contenedor-slider-tiempo" class="oculta">
+                <label style="font-size: 0.9rem; color: var(--texto-secundario); margin-top: 10px;">Minutos: <span id="valor-tiempo">3</span></label>
+                <input type="range" id="rango-tiempo" min="1" max="10" value="3" oninput="actualizarRangoTiempo()">
+            </div>
+        </div>
+
+        <button onclick="iniciarSorteo('pantalla-configuracion')" class="btn-principal">
+            <i data-lucide="check-circle"></i> ¡Comenzar Sorteo!
+        </button>
+        <button onclick="cambiarPantalla('pantalla-configuracion', 'pantalla-menu')" class="btn-volver">
+            <i data-lucide="arrow-left"></i> Volver al Menú
+        </button>
+    </div>
+
+    <div id="pantalla-roles" class="pantalla oculta">
+        <h2 id="turno-jugador-texto" style="color: var(--color-primario);">Turno de ...</h2>
+        <p style="color: var(--texto-secundario);">Asegúrate de que nadie más vea tu pantalla.</p>
+        
+        <div class="tarjeta-rol" id="contenedor-tarjeta" onclick="revelarRol()">
+            <div class="tarjeta-inner">
+                <div id="frente-tarjeta" class="cara-tarjeta frente">
+                    <h3>Toca para revelar</h3>
+                    <i data-lucide="hand" style="width: 48px; height: 48px; margin-top: 15px;"></i>
+                </div>
+                <div id="dorso-tarjeta" class="cara-tarjeta dorso">
+                    <h3 id="rol-titulo">La palabra es:</h3>
+                    <h1 id="rol-palabra">PIZZA</h1>
+                    <p id="rol-pista" class="oculta" style="color: #facc15; font-weight: bold; margin-top: 15px; font-size: 1.2rem;"></p>
+                </div>
+            </div>
+        </div>
+
+        <button id="btn-siguiente-jugador" class="btn-principal oculta" onclick="siguienteTurno()">
+            ¡Entendido! <i data-lucide="arrow-right"></i>
+        </button>
+    </div>
+
+    <div id="pantalla-debate" class="pantalla oculta">
+        <h2><i data-lucide="message-square" style="width: 32px; height: 32px; vertical-align: middle;"></i> Fase de Debate</h2>
+        <p id="mensaje-debate" style="color: var(--texto-secundario); font-size: 1.1rem; margin-top: 10px;">Hagan preguntas sutiles y descubran al impostor.</p>
+        
+        <div id="contenedor-cronometro" class="oculta">
+            <h1 id="tiempo-display" style="font-size: 5rem; color: var(--color-acento); margin: 20px 0; font-family: monospace;">00:00</h1>
+        </div>
+
+        <button onclick="finalizarJuego()" class="btn-principal" style="background-color: #e74c3c; margin-top: 40px;">
+            <i data-lucide="flag"></i> Terminar y Votar
+        </button>
+    </div>
+
+    <div id="pantalla-final" class="pantalla oculta">
+        <h2><i data-lucide="flag" style="width: 40px; height: 40px; stroke: #e74c3c;"></i><br>¡Juego Terminado!</h2>
+        
+        <p style="color: var(--texto-secundario); font-size: 1.2rem; margin-top: 20px;">La palabra secreta era:</p>
+        <h1 id="palabra-revelada-final" style="font-size: 3rem; color: var(--color-primario); margin: 10px 0;">PIZZA</h1>
+        
+        <h3 id="impostor-revelado-final" style="color: #e74c3c; margin: 15px 0; font-size: 1.3rem; font-weight: bold;"></h3>
+        
+        <p style="color: var(--texto-secundario); margin-bottom: 25px;">¿Lograron descubrirlo a tiempo?</p>
+
+        <button onclick="iniciarSorteo('pantalla-final')" class="btn-principal" style="background-color: var(--color-acento); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);">
+            <i data-lucide="refresh-cw"></i> Volver a Jugar
+        </button>
+
+        <button onclick="volverAlMenuFinal()" class="btn-volver" style="margin-top: 15px;">
+            <i data-lucide="home"></i> Volver al Menú
+        </button>
+    </div>
+
+    <script src="js/palabras.js"></script>
+    <script src="js/juego.js"></script>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('PWA Lista para usarse offline'))
+                .catch(err => console.warn('Error en PWA', err));
+        }
+    </script>
+</body>
+</html>
